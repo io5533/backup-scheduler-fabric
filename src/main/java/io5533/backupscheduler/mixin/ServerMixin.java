@@ -1,7 +1,6 @@
 package io5533.backupscheduler.mixin;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import io5533.backupscheduler.BackupConfig;
 import io5533.backupscheduler.BackupScheduler;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,27 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
-class BackupConfig {
-	public static final String CONFIG_NAME = "backup.json";
-	public int tick = 36000;
-	public String command = "";
-	public BackupConfig(Path path) throws IOException {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-		if (Files.exists(path)) {
-			String json = Files.readString(path);
-			BackupConfig config = gson.fromJson(json, BackupConfig.class);
-			this.command = config.command;
-			this.tick = config.tick;
-		} else {
-			Files.createDirectories(path.getParent());
-			Files.writeString(path, gson.toJson(this));
-		}
-	}
-}
 
 @Mixin(MinecraftServer.class)
 public class ServerMixin {
