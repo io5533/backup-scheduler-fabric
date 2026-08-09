@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "backup-scheduler",
+	"version": "${version}",
+	"name": "Backup Scheduler",
+	"description": "Call a script or executable file in every 30 minutes, when players exist.",
+	"authors": [
+		"io5533"
+	],
+	"contact": {
+		"sources": "https://github.com/io5533/backup-scheduler-fabric"
+	},
+	"license": "MIT",
+	"icon": "icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io5533.backupscheduler.BackupScheduler"
+		]
+	},
+	"mixins": [
+		"backup-scheduler.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25"
+	}
+}
