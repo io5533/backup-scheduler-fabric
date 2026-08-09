@@ -3,7 +3,7 @@
 	"id": "backup-scheduler",
 	"version": "${version}",
 	"name": "Backup Scheduler",
-	"description": "Call a script or executable file in every 30 minutes, when players exist.",
+	"description": "Call a script or executable file in every 30 minutes, when player exists.",
 	"authors": [
 		"io5533"
 	],
@@ -12,7 +12,7 @@
 	},
 	"license": "MIT",
 	"icon": "icon.png",
-	"environment": "*",
+	"environment": "server",
 	"entrypoints": {
 		"main": [
 			"io5533.backupscheduler.BackupScheduler"
