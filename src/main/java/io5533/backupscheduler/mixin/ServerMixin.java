@@ -26,7 +26,7 @@ public class ServerMixin {
 			BackupScheduler.LOGGER.warn("config.command is empty! Skip the backup. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
 			return;
 		}
-		server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withCallback((success, _) -> {
+		server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withCallback((success, __) -> {
 			if (success) {
 				new Thread(() -> {
 					ProcessBuilder pb = new ProcessBuilder(config.command);
