@@ -16,12 +16,20 @@ import java.io.IOException;
 public class ServerMixin {
 
 	@Unique
+	private boolean backupRunning = false;
+
+	@Unique
     private BackupConfig config = null;
 	@Unique
     private int backupTick = 0;
 
 	@Unique
     private void backup(MinecraftServer server) {
+		if (backupRunning) {
+			BackupScheduler.LOGGER.warn("Backup script is still running. Skip the backup.");
+			return;
+		}
+		backupRunning = true;
 		if (config.command.isEmpty()) {
 			BackupScheduler.LOGGER.warn("config.command is empty! Skip the backup. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
 			return;
@@ -38,6 +46,8 @@ public class ServerMixin {
 						}
 					} catch (IOException | InterruptedException e) {
 						throw new RuntimeException(e);
+					} finally {
+						backupRunning = false;
 					}
 				}).start();
 			}
