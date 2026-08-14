@@ -1,12 +1,10 @@
 package io5533.backupscheduler;
 
-import io5533.backupscheduler.mixin.ServerMixin;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.permissions.PermissionSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
