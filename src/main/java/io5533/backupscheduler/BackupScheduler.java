@@ -16,6 +16,7 @@ public class BackupScheduler implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			if (!Scheduler.config.admin_commands) return;
 			dispatcher.register(Commands.literal("backup-scheduler")
 					.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
 					.then(Commands.literal("remain")

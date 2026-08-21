@@ -10,6 +10,7 @@ import java.nio.file.Path;
 public class BackupConfig {
 	public static final String CONFIG_NAME = "backup.json";
 	public int tick = 36000;
+	public boolean admin_commands = true;
 	public String command = "";
 	public BackupConfig(Path path) throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -19,6 +20,7 @@ public class BackupConfig {
 			BackupConfig config = gson.fromJson(json, BackupConfig.class);
 			this.command = config.command;
 			this.tick = config.tick;
+			this.admin_commands = config.admin_commands;
 		} else {
 			Files.createDirectories(path.getParent());
 			Files.writeString(path, gson.toJson(this));
