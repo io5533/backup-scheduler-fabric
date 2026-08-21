@@ -23,8 +23,12 @@ public class BackupScheduler implements ModInitializer {
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();
 								int remain = Scheduler.config.tick - tick;
+
+								int sec = remain/20;
+								int min = sec/60;
+								sec %= 60;
 								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Current backup tick is "+tick+". "+remain+" ticks(about "+(remain/20)+"sec) remain for next backup.")
+										Component.literal("[Backup] Current backup tick is "+tick+". "+remain+" ticks(about "+min+"min "+sec+"sec) remain for next backup.")
 								);
 								return 1;
 							})
