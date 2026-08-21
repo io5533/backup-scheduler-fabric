@@ -3,7 +3,7 @@
 	"id": "backup-scheduler",
 	"version": "${version}",
 	"name": "Backup Scheduler",
-	"description": "Call a script or executable file in every 30 minutes, when player exists.",
+	"description": "Call a script or executable file in every 30 minutes(configurable), when player exists.",
 	"authors": [
 		"io5533"
 	],
