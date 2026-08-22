@@ -11,7 +11,7 @@ public class BackupConfig {
 	public static final String CONFIG_NAME = "backup.json";
 	public int tick = 36000;
 	public boolean admin_commands = true;
-	public String command = "";
+	public String backup_command = "";
 	public BackupConfig() {}
 
 	public static BackupConfig load(Path path) throws IOException {
