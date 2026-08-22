@@ -12,18 +12,19 @@ public class BackupConfig {
 	public int tick = 36000;
 	public boolean admin_commands = true;
 	public String command = "";
-	public BackupConfig(Path path) throws IOException {
+	public BackupConfig() {}
+
+	public static BackupConfig load(Path path) throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		if (Files.exists(path)) {
-			String json = Files.readString(path);
-			BackupConfig config = gson.fromJson(json, BackupConfig.class);
-			this.command = config.command;
-			this.tick = config.tick;
-			this.admin_commands = config.admin_commands;
-		} else {
-			Files.createDirectories(path.getParent());
-			Files.writeString(path, gson.toJson(this));
+		if (Files.exists(path) && Files.size(path) > 0) {
+			BackupConfig config = gson.fromJson(Files.readString(path), BackupConfig.class);
+			if (config != null) return config;
 		}
+
+		BackupConfig defaultConfig = new BackupConfig();
+		if (path.getParent() != null) Files.createDirectories(path.getParent());
+		Files.writeString(path, gson.toJson(defaultConfig));
+		return defaultConfig;
 	}
 }
