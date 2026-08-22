@@ -60,7 +60,7 @@ public class BackupScheduler implements ModInitializer {
 								return 1;
 							})
 					)
-					.then(Commands.literal("isBackupRunning")
+					.then(Commands.literal("running")
 							.executes(commandContext -> {
 								commandContext.getSource().sendSystemMessage(
 										Component.literal(
