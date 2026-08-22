@@ -12,6 +12,7 @@ public class BackupConfig {
 	public int tick = 36000;
 	public boolean admin_commands = true;
 	public String backup_command = "";
+	public String clean_command = "";
 	public BackupConfig() {}
 
 	public static BackupConfig load(Path path) throws IOException {

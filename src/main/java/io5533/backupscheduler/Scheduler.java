@@ -47,6 +47,33 @@ public class Scheduler {
             }
         }), "save-all flush");
     }
+
+    public static void clean() {
+        if (backupRunning) {
+            BackupScheduler.LOGGER.warn("Backup script is still running. Skip the clean.");
+            return;
+        }
+        backupRunning = true;
+        if (config.clean_command.isEmpty()) {
+            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+            return;
+        }
+        new Thread(() -> {
+            ProcessBuilder pb = new ProcessBuilder(config.clean_command);
+            try {
+                Process process = pb.start();
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    BackupScheduler.LOGGER.error("clean_command exit code: {}", exitCode);
+                }
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                backupRunning = false;
+            }
+        }).start();
+    }
+
     public static void tick(MinecraftServer server) {
         if (paused) return;
 

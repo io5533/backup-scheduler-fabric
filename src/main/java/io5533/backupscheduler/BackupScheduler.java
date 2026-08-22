@@ -60,6 +60,15 @@ public class BackupScheduler implements ModInitializer {
 								return 1;
 							})
 					)
+					.then(Commands.literal("clean")
+							.executes(commandContext -> {
+								Scheduler.clean();
+								commandContext.getSource().sendSystemMessage(
+										Component.literal("[Backup] Starting the clean...")
+								);
+								return 1;
+							})
+					)
 					.then(Commands.literal("running")
 							.executes(commandContext -> {
 								commandContext.getSource().sendSystemMessage(
