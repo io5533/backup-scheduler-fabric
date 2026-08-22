@@ -18,12 +18,17 @@ public class BackupScheduler implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(Commands.literal("backup-scheduler")
 					.requires(source -> source.hasPermission(2))
+					.requires(commandSourceStack -> Scheduler.config.admin_commands)
 					.then(Commands.literal("remain")
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();
 								int remain = Scheduler.config.tick - tick;
+
+								int sec = remain/20;
+								int min = sec/60;
+								sec %= 60;
 								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Current backup tick is "+tick+". "+remain+" ticks(about "+(remain/20)+"sec) remain for next backup.")
+										Component.literal("[Backup] Current backup tick is "+tick+". "+remain+" ticks(about "+min+"min "+sec+"sec) remain for next backup.")
 								);
 								return 1;
 							})
@@ -55,7 +60,16 @@ public class BackupScheduler implements ModInitializer {
 								return 1;
 							})
 					)
-					.then(Commands.literal("isBackupRunning")
+					.then(Commands.literal("clean")
+							.executes(commandContext -> {
+								Scheduler.clean();
+								commandContext.getSource().sendSystemMessage(
+										Component.literal("[Backup] Starting the clean...")
+								);
+								return 1;
+							})
+					)
+					.then(Commands.literal("running")
 							.executes(commandContext -> {
 								commandContext.getSource().sendSystemMessage(
 										Component.literal(

@@ -23,7 +23,7 @@ public class ServerMixin {
 	private void init(CallbackInfo info) {
 		MinecraftServer self = (MinecraftServer) (Object) this;
         try {
-            Scheduler.config = new BackupConfig(self.getServerDirectory().resolve("config").resolve(BackupConfig.CONFIG_NAME));
+            Scheduler.config = BackupConfig.load(self.getServerDirectory().resolve("config").resolve(BackupConfig.CONFIG_NAME));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

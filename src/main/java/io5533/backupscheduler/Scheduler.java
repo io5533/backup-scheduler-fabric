@@ -24,19 +24,19 @@ public class Scheduler {
             return;
         }
         backupRunning = true;
-        if (config.command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.command is empty! Skip the backup. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+        if (config.backup_command.isEmpty()) {
+            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
             return;
         }
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withCallback((success, __) -> {
             if (success) {
                 new Thread(() -> {
-                    ProcessBuilder pb = new ProcessBuilder(config.command);
+                    ProcessBuilder pb = new ProcessBuilder(config.backup_command);
                     try {
                         Process process = pb.start();
                         int exitCode = process.waitFor();
                         if (exitCode != 0) {
-                            BackupScheduler.LOGGER.error("backup command exit code: {}", exitCode);
+                            BackupScheduler.LOGGER.error("backup_command exit code: {}", exitCode);
                         }
                     } catch (IOException | InterruptedException e) {
                         throw new RuntimeException(e);
@@ -47,6 +47,33 @@ public class Scheduler {
             }
         }), "save-all flush");
     }
+
+    public static void clean() {
+        if (backupRunning) {
+            BackupScheduler.LOGGER.warn("Backup script is still running. Skip the clean.");
+            return;
+        }
+        backupRunning = true;
+        if (config.clean_command.isEmpty()) {
+            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+            return;
+        }
+        new Thread(() -> {
+            ProcessBuilder pb = new ProcessBuilder(config.clean_command);
+            try {
+                Process process = pb.start();
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    BackupScheduler.LOGGER.error("clean_command exit code: {}", exitCode);
+                }
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                backupRunning = false;
+            }
+        }).start();
+    }
+
     public static void tick(MinecraftServer server) {
         if (paused) return;
 

@@ -10,18 +10,22 @@ import java.nio.file.Path;
 public class BackupConfig {
 	public static final String CONFIG_NAME = "backup.json";
 	public int tick = 36000;
-	public String command = "";
-	public BackupConfig(Path path) throws IOException {
+	public boolean admin_commands = true;
+	public String backup_command = "";
+	public String clean_command = "";
+	public BackupConfig() {}
+
+	public static BackupConfig load(Path path) throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		if (Files.exists(path)) {
-			String json = Files.readString(path);
-			BackupConfig config = gson.fromJson(json, BackupConfig.class);
-			this.command = config.command;
-			this.tick = config.tick;
-		} else {
-			Files.createDirectories(path.getParent());
-			Files.writeString(path, gson.toJson(this));
+		if (Files.exists(path) && Files.size(path) > 0) {
+			BackupConfig config = gson.fromJson(Files.readString(path), BackupConfig.class);
+			if (config != null) return config;
 		}
+
+		BackupConfig defaultConfig = new BackupConfig();
+		if (path.getParent() != null) Files.createDirectories(path.getParent());
+		Files.writeString(path, gson.toJson(defaultConfig));
+		return defaultConfig;
 	}
 }
