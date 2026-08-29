@@ -19,7 +19,6 @@
 		]
 	},
 	"mixins": [
-		"backup-scheduler.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.19.3",

@@ -2,6 +2,7 @@ package io5533.backupscheduler;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -15,9 +16,13 @@ public class BackupScheduler implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+		ServerTickEvents.END_SERVER_TICK.register(minecraftServer -> {
+			if (minecraftServer.getPlayerCount() > 0) Scheduler.tick(minecraftServer);
+		});
+
+		if (BackupConfig.getInstance().admin_commands) CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(Commands.literal("backup-scheduler")
-					.requires(commandSourceStack -> Scheduler.config.admin_commands && Commands.hasPermission(Commands.LEVEL_ADMINS).test(commandSourceStack))
+					.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
 					.then(Commands.literal("remain")
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();
