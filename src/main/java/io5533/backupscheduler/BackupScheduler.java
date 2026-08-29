@@ -20,7 +20,7 @@ public class BackupScheduler implements ModInitializer {
 			if (minecraftServer.getPlayerCount() > 0) Scheduler.tick(minecraftServer);
 		});
 
-		if (BackupConfig.getInstance().admin_commands) CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+		if (Config.getInstance().admin_commands) CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(Commands.literal("backup-scheduler")
 					.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
 					.then(Commands.literal("remain")

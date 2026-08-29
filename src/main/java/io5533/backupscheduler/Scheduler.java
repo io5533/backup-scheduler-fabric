@@ -9,7 +9,7 @@ import java.io.IOException;
 public class Scheduler {
     public static boolean paused = false;
     private static boolean backupRunning = false;
-    public static BackupConfig config = null;
+    public static Config config = null;
 
     private static int backupTick = 0;
 
@@ -27,7 +27,7 @@ public class Scheduler {
         }
         backupRunning = true;
         if (config.backup_command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the config/{} file.", Config.CONFIG_NAME);
             return;
         }
         final Commands commands = server.getCommands();
@@ -73,7 +73,7 @@ public class Scheduler {
         }
         backupRunning = true;
         if (config.clean_command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the config/{} file.", Config.CONFIG_NAME);
             return;
         }
         new Thread(() -> {

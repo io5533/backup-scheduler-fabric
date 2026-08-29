@@ -7,14 +7,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-public class BackupConfig {
+public class Config {
 	public static final File CONFIG_FILE = new File("config/backup.json");
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-	private static volatile BackupConfig instance = null;
-	public static BackupConfig getInstance() {
+	private static volatile Config instance = null;
+	public static Config getInstance() {
 		if (instance == null) {
 			try {
-				instance = BackupConfig.load();
+				instance = Config.load();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -26,15 +26,15 @@ public class BackupConfig {
 	public boolean admin_commands = true;
 	public String backup_command = "";
 	public String clean_command = "";
-	public BackupConfig() {}
+	public Config() {}
 
-	private static BackupConfig load() throws IOException {
+	private static Config load() throws IOException {
 
 		if (CONFIG_FILE.exists() && Files.size(CONFIG_FILE.toPath()) > 0) {
-			BackupConfig config = GSON.fromJson(Files.readString(CONFIG_FILE.toPath()), BackupConfig.class);
+			Config config = GSON.fromJson(Files.readString(CONFIG_FILE.toPath()), Config.class);
 			if (config != null) return config;
 		}
-		BackupConfig config = new BackupConfig();
+		Config config = new Config();
 		config.save();
 		return config;
 	}
