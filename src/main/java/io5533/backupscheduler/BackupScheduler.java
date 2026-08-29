@@ -17,8 +17,7 @@ public class BackupScheduler implements ModInitializer {
 	public void onInitialize() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(Commands.literal("backup-scheduler")
-					.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
-					.requires(commandSourceStack -> Scheduler.config.admin_commands)
+					.requires(commandSourceStack -> Scheduler.config.admin_commands && Commands.hasPermission(Commands.LEVEL_ADMINS).test(commandSourceStack))
 					.then(Commands.literal("remain")
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();
