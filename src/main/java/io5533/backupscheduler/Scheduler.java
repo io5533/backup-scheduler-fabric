@@ -27,7 +27,7 @@ public class Scheduler {
         }
         backupRunning = true;
         if (config.backup_command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the config/{} file.", Config.CONFIG_NAME);
+            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the {} file.", Config.CONFIG_FILE.getPath());
             return;
         }
         final Commands commands = server.getCommands();
@@ -73,7 +73,7 @@ public class Scheduler {
         }
         backupRunning = true;
         if (config.clean_command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the config/{} file.", Config.CONFIG_NAME);
+            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the {} file.", Config.CONFIG_FILE.getPath());
             return;
         }
         new Thread(() -> {
