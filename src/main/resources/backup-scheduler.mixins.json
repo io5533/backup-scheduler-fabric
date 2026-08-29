@@ -3,7 +3,6 @@
 	"package": "io5533.backupscheduler.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ServerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

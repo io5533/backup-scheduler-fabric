@@ -1,5 +1,7 @@
 package io5533.backupscheduler;
 
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 
 import java.io.IOException;
@@ -7,7 +9,7 @@ import java.io.IOException;
 public class Scheduler {
     public static boolean paused = false;
     private static boolean backupRunning = false;
-    public static BackupConfig config = null;
+    public static Config config = null;
 
     private static int backupTick = 0;
 
@@ -25,27 +27,43 @@ public class Scheduler {
         }
         backupRunning = true;
         if (config.backup_command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+            BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the {} file.", Config.CONFIG_FILE.getPath());
             return;
         }
-        server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withCallback((success, __) -> {
-            if (success) {
-                new Thread(() -> {
-                    ProcessBuilder pb = new ProcessBuilder(config.backup_command);
-                    try {
-                        Process process = pb.start();
-                        int exitCode = process.waitFor();
-                        if (exitCode != 0) {
-                            BackupScheduler.LOGGER.error("backup_command exit code: {}", exitCode);
+        final Commands commands = server.getCommands();
+        final CommandSourceStack stack = server.createCommandSourceStack();
+
+        commands.performPrefixedCommand(stack.withCallback((success1, _1) -> {
+
+            if (success1) commands.performPrefixedCommand(stack.withCallback((success2, _2) -> {
+
+                if (success2) {
+
+                    new Thread(() -> {
+                        ProcessBuilder pb = new ProcessBuilder(config.backup_command);
+                        try {
+                            Process process = pb.start();
+                            int exitCode = process.waitFor();
+                            if (exitCode != 0) {
+                                BackupScheduler.LOGGER.error("backup_command exit code: {}", exitCode);
+                            }
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            commands.performPrefixedCommand(stack.withCallback((success3, _3) -> {
+                                backupRunning = false;
+                                if (!success3) BackupScheduler.LOGGER.warn("Failed to execute save-on!");
+                            }), "save-on");
                         }
-                    } catch (IOException | InterruptedException e) {
-                        throw new RuntimeException(e);
-                    } finally {
-                        backupRunning = false;
-                    }
-                }).start();
-            }
-        }), "save-all flush");
+                    }).start();
+
+                }
+                else BackupScheduler.LOGGER.error("Backup failed!");
+
+            }), "save-all flush");
+            else BackupScheduler.LOGGER.error("Backup failed!");
+
+        }), "save-off");
     }
 
     public static void clean() {
@@ -55,7 +73,7 @@ public class Scheduler {
         }
         backupRunning = true;
         if (config.clean_command.isEmpty()) {
-            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the config/{} file.", BackupConfig.CONFIG_NAME);
+            BackupScheduler.LOGGER.warn("config.clean_command is empty! Skip the clean. Tip: check the {} file.", Config.CONFIG_FILE.getPath());
             return;
         }
         new Thread(() -> {
