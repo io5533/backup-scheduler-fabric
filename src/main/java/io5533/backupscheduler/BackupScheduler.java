@@ -26,7 +26,7 @@ public class BackupScheduler implements ModInitializer {
 					.then(Commands.literal("remain")
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();
-								int remain = Scheduler.config.tick - tick;
+								int remain = Config.getInstance().tick - tick;
 
 								int sec = remain/20;
 								int min = sec/60;

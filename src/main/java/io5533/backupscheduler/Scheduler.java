@@ -9,7 +9,6 @@ import java.io.IOException;
 public class Scheduler {
     public static boolean paused = false;
     private static boolean backupRunning = false;
-    public static Config config = null;
 
     private static int backupTick = 0;
 
@@ -21,6 +20,7 @@ public class Scheduler {
     }
 
     public static void backup(MinecraftServer server) {
+        Config config = Config.getInstance();
         if (backupRunning) {
             BackupScheduler.LOGGER.warn("Backup script is still running. Skip the backup.");
             return;
@@ -67,6 +67,7 @@ public class Scheduler {
     }
 
     public static void clean() {
+        Config config = Config.getInstance();
         if (backupRunning) {
             BackupScheduler.LOGGER.warn("Backup script is still running. Skip the clean.");
             return;
@@ -96,7 +97,7 @@ public class Scheduler {
         if (paused) return;
 
         backupTick ++;
-        backupTick %= config.tick;
+        backupTick %= Config.getInstance().tick;
 
         if (backupTick == 0) backup(server);
     }
