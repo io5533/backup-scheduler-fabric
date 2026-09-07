@@ -37,7 +37,7 @@ public class Scheduler {
     public static void backup(MinecraftServer server, @Nullable CommandSourceStack origin) {
         Config config = Config.getInstance();
         if (scriptRunning) {
-            logWarn(origin, "Backup script is still running. Skip the backup.");
+            logWarn(origin, "Script is still running. Skip the backup.");
             return;
         }
         if (config.backup_command.isEmpty()) {
@@ -75,13 +75,13 @@ public class Scheduler {
 
                 }
                 else {
-                    logError(origin, "Backup failed!");
+                    logError(origin, "Backup failed! (save-all flush)");
                     scriptRunning = false;
                 }
 
             }), "save-all flush");
             else {
-                logError(origin, "Backup failed!");
+                logError(origin, "Backup failed! (save-off)");
                 scriptRunning = false;
             }
 
@@ -94,7 +94,7 @@ public class Scheduler {
     public static void cleanup(@Nullable CommandSourceStack origin) {
         Config config = Config.getInstance();
         if (scriptRunning) {
-            logWarn(origin, "Backup script is still running. Skip the cleanup.");
+            logWarn(origin, "Script is still running. Skip the cleanup.");
             return;
         }
         if (config.cleanup_command.isEmpty()) {
@@ -123,7 +123,7 @@ public class Scheduler {
         if (paused) return;
 
         backupTick ++;
-        backupTick %= Config.getInstance().tick;
+        backupTick %= Config.getInstance().backup_tick;
 
         if (backupTick == 0) backup(server);
     }
