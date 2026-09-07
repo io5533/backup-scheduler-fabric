@@ -123,8 +123,10 @@ public class Scheduler {
         if (paused) return;
 
         backupTick ++;
-        backupTick %= Config.getInstance().backup_tick;
 
-        if (backupTick == 0) backup(server);
+        if (backupTick >= Config.getInstance().backup_tick) {
+            backupTick = 0;
+            backup(server);
+        }
     }
 }
