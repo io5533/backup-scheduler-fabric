@@ -32,7 +32,7 @@ public class BackupScheduler implements ModInitializer {
 								int min = sec/60;
 								sec %= 60;
 								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Current backup tick is "+tick+". "+remain+" ticks(about "+min+"min "+sec+"sec) remain for next backup.")
+										Component.literal("Current scheduler tick is "+tick+". "+remain+" ticks(about "+min+"min "+sec+"sec) remain for next backup.")
 								);
 								return 1;
 							})
@@ -40,36 +40,28 @@ public class BackupScheduler implements ModInitializer {
 					.then(Commands.literal("pause")
 							.executes(commandContext -> {
 								Scheduler.paused = true;
-								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Backup scheduler is paused.")
-								);
+								commandContext.getSource().sendSuccess(() -> Component.literal("Backup scheduler is paused"), true);
 								return 1;
 							})
 					)
 					.then(Commands.literal("resume")
 							.executes(commandContext -> {
 								Scheduler.paused = false;
-								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Backup scheduler is resumed.")
-								);
+								commandContext.getSource().sendSuccess(() -> Component.literal("Backup scheduler is resumed"), true);
 								return 1;
 							})
 					)
 					.then(Commands.literal("backup")
 							.executes(commandContext -> {
-								Scheduler.backup(commandContext.getSource().getServer());
-								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Starting the backup...")
-								);
+								Scheduler.backup(commandContext.getSource().getServer(), commandContext.getSource());
+								commandContext.getSource().sendSuccess(() -> Component.literal("Backup started"), true);
 								return 1;
 							})
 					)
 					.then(Commands.literal("clean")
 							.executes(commandContext -> {
-								Scheduler.clean();
-								commandContext.getSource().sendSystemMessage(
-										Component.literal("[Backup] Starting the clean...")
-								);
+								Scheduler.clean(commandContext.getSource());
+								commandContext.getSource().sendSuccess(() -> Component.literal("Clean started"), true);
 								return 1;
 							})
 					)
@@ -78,8 +70,8 @@ public class BackupScheduler implements ModInitializer {
 								commandContext.getSource().sendSystemMessage(
 										Component.literal(
 												Scheduler.isBackupRunning()?
-												"[Backup] The backup script is still running.":
-												"[Backup] The backup script is not running."
+												"A script is still running" :
+												"A script is not running"
 										)
 								);
 								return 1;
