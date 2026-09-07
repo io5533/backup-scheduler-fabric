@@ -1,7 +1,6 @@
 package io5533.backupscheduler;
 
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.Nullable;
@@ -18,17 +17,8 @@ public class Scheduler {
         return backupTick;
     }
 
-    private static void logError(@Nullable CommandSourceStack origin, String string) {
-        if (origin != null) origin.sendFailure(Component.literal(string));
-        BackupScheduler.LOGGER.error(string);
-    }
-    private static void logInfo(@Nullable CommandSourceStack origin, String string) {
-        if (origin != null) origin.sendSystemMessage(Component.literal(string));
-        BackupScheduler.LOGGER.info(string);
-    }
-    private static void logWarn(@Nullable CommandSourceStack origin, String string) {
-        if (origin != null) origin.sendFailure(Component.literal(string));
-        BackupScheduler.LOGGER.warn(string);
+    private static boolean saveAllFlush(MinecraftServer server) {
+        return server.saveEverything(true, true, true);
     }
 
     public static void backup(MinecraftServer server) {
@@ -37,55 +27,55 @@ public class Scheduler {
     public static void backup(MinecraftServer server, @Nullable CommandSourceStack origin) {
         Config config = Config.getInstance();
         if (scriptRunning) {
-            logWarn(origin, "Script is still running. Skip the backup.");
+            if (origin == null)
+                BackupScheduler.LOGGER.error("Script is still running. Skip the backup.");
+            else
+                origin.sendFailure(Component.literal("Script is still running. Please try later."));
             return;
         }
         if (config.backup_command.isEmpty()) {
-            logWarn(origin, "config.backup_command is empty! Skip the backup. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
+            if (origin == null)
+                BackupScheduler.LOGGER.warn("config.backup_command is empty! Skip the backup. Tip: check the {} file.", Config.CONFIG_FILE.getPath());
+            else
+                origin.sendFailure(Component.literal("config.backup_command is empty! Nothing to do."));
             return;
         }
+
         scriptRunning = true;
-        final Commands commands = server.getCommands();
-        final CommandSourceStack stack = server.createCommandSourceStack();
+        boolean wasEnabled = server.setAutoSave(false);
+        if(!saveAllFlush(server)) {
+            if (origin == null)
+                BackupScheduler.LOGGER.error("Backup failed! (save-all flush)");
+            else
+                origin.sendFailure(Component.literal("Backup failed! (save-all flush)"));
+            server.setAutoSave(wasEnabled);
+            scriptRunning = false;
+            return;
+        }
 
-        commands.performPrefixedCommand(stack.withCallback((success1, _1) -> {
-
-            if (success1) commands.performPrefixedCommand(stack.withCallback((success2, _2) -> {
-
-                if (success2) {
-
-                    new Thread(() -> {
-                        ProcessBuilder pb = new ProcessBuilder(config.backup_command);
-                        try {
-                            Process process = pb.start();
-                            int exitCode = process.waitFor();
-                            if (exitCode != 0) {
-                                logError(origin, "backup_command exit code: " + exitCode);
-                            }
-                        } catch (IOException | InterruptedException e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            commands.performPrefixedCommand(stack.withCallback((success3, _3) -> {
-                                scriptRunning = false;
-                                if (!success3) logWarn(origin, "Failed to execute save-on!");
-                                logInfo(origin, "Backup completed");
-                            }), "save-on");
-                        }
-                    }).start();
-
+        new Thread(() -> {
+            ProcessBuilder pb = new ProcessBuilder(config.backup_command);
+            try {
+                Process process = pb.start();
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    if (origin == null)
+                        BackupScheduler.LOGGER.error("backup_command exit code: {}", exitCode);
+                    else
+                        origin.sendFailure(Component.literal("backup_command exit code: " + exitCode));
                 }
-                else {
-                    logError(origin, "Backup failed! (save-all flush)");
-                    scriptRunning = false;
-                }
-
-            }), "save-all flush");
-            else {
-                logError(origin, "Backup failed! (save-off)");
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                server.setAutoSave(wasEnabled);
                 scriptRunning = false;
-            }
 
-        }), "save-off");
+                if (origin == null)
+                    BackupScheduler.LOGGER.info("Backup completed");
+                else
+                    origin.sendSuccess(() -> Component.literal("Backup completed"), true);
+            }
+        }).start();
     }
 
     public static void cleanup() {
@@ -94,11 +84,17 @@ public class Scheduler {
     public static void cleanup(@Nullable CommandSourceStack origin) {
         Config config = Config.getInstance();
         if (scriptRunning) {
-            logWarn(origin, "Script is still running. Skip the cleanup.");
+            if (origin == null)
+                BackupScheduler.LOGGER.error("Script is still running. Skip the cleanup.");
+            else
+                origin.sendFailure(Component.literal("Script is still running. Please try later."));
             return;
         }
         if (config.cleanup_command.isEmpty()) {
-            logWarn(origin, "config.cleanup_command is empty! Skip the cleanup. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
+            if (origin == null)
+                BackupScheduler.LOGGER.warn("config.cleanup_command is empty! Skip the backup. Tip: check the {} file.", Config.CONFIG_FILE.getPath());
+            else
+                origin.sendFailure(Component.literal("config.cleanup_command is empty! Nothing to do."));
             return;
         }
         scriptRunning = true;
@@ -108,13 +104,19 @@ public class Scheduler {
                 Process process = pb.start();
                 int exitCode = process.waitFor();
                 if (exitCode != 0) {
-                    logError(origin, "cleanup_command exit code: " + exitCode);
+                    if (origin == null)
+                        BackupScheduler.LOGGER.error("cleanup_command exit code: {}", exitCode);
+                    else
+                        origin.sendFailure(Component.literal("cleanup_command exit code: " + exitCode));
                 }
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             } finally {
                 scriptRunning = false;
-                logInfo(origin, "Cleanup completed");
+                if (origin == null)
+                    BackupScheduler.LOGGER.info("Cleanup completed");
+                else
+                    origin.sendSuccess(() -> Component.literal("Cleanup completed"), true);
             }
         }).start();
     }
