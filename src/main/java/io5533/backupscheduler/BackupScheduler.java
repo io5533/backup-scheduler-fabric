@@ -70,8 +70,8 @@ public class BackupScheduler implements ModInitializer {
 								commandContext.getSource().sendSystemMessage(
 										Component.literal(
 												Scheduler.isBackupRunning()?
-												"A script is still running" :
-												"A script is not running"
+												"Script is still running" :
+												"Script is not running"
 										)
 								);
 								return 1;
