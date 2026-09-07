@@ -44,11 +44,11 @@ public class Scheduler {
             logWarn(origin, "Backup script is still running. Skip the backup.");
             return;
         }
-        backupRunning = true;
         if (config.backup_command.isEmpty()) {
             logWarn(origin, "config.backup_command is empty! Skip the backup. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
             return;
         }
+        backupRunning = true;
         final Commands commands = server.getCommands();
         final CommandSourceStack stack = server.createCommandSourceStack();
 
@@ -77,10 +77,16 @@ public class Scheduler {
                     }).start();
 
                 }
-                else logError(origin, "Backup failed!");
+                else {
+                    logError(origin, "Backup failed!");
+                    backupRunning = false;
+                }
 
             }), "save-all flush");
-            else logError(origin, "Backup failed!");
+            else {
+                logError(origin, "Backup failed!");
+                backupRunning = false;
+            }
 
         }), "save-off");
     }
@@ -94,11 +100,11 @@ public class Scheduler {
             logWarn(origin, "Backup script is still running. Skip the clean.");
             return;
         }
-        backupRunning = true;
         if (config.clean_command.isEmpty()) {
             logWarn(origin, "config.clean_command is empty! Skip the clean. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
             return;
         }
+        backupRunning = true;
         new Thread(() -> {
             ProcessBuilder pb = new ProcessBuilder(config.clean_command);
             try {
