@@ -3,6 +3,8 @@ package io5533.backupscheduler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -23,6 +25,89 @@ public class BackupScheduler implements ModInitializer {
 		if (Config.getInstance().admin_commands) CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(Commands.literal("backup-scheduler")
 					.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
+					.then(Commands.literal("unlock")
+							.executes(commandContext -> {
+								CommandSourceStack sourceStack = commandContext.getSource();
+								if (!Scheduler.isBackupRunning()) {
+									sourceStack.sendFailure(Component.literal("Script is not running"));
+									return 0;
+								}
+								Scheduler.paused = true;
+								Scheduler.setBackupRunning(false);
+
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"WARNING: Unlocking while the backup script is still running may cause backup file corruption!"
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"Only use this command if you are sure that the backup script has finished."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"The Backup Scheduler has been paused automatically for safety."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"Verify that the backup has finished before using '/backup-scheduler resume'."
+										).withStyle(ChatFormatting.GOLD)
+								);
+
+
+								commandContext.getSource().sendSuccess(() -> Component.literal("Backup scheduler is UNLOCKED"), true);
+
+								return 1;
+							})
+					)
+					.then(Commands.literal("lock")
+							.executes(commandContext -> {
+								CommandSourceStack sourceStack = commandContext.getSource();
+								if (Scheduler.isBackupRunning()) {
+									sourceStack.sendFailure(Component.literal("Script is still running"));
+									return 0;
+								}
+								Scheduler.paused = true;
+								Scheduler.setBackupRunning(true);
+
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"WARNING: This will force the Backup Scheduler into a locked state."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"If the backup script is currently running, use '/backup-scheduler pause' instead."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"While locked, scheduled backups will be skipped when the tick threshold is reached."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"This may cause a scheduled backup to be missed."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"The Backup Scheduler has been paused automatically for safety."
+										).withStyle(ChatFormatting.GOLD)
+								);
+								sourceStack.sendSystemMessage(
+										Component.literal(
+												"Verify the backup state before using '/backup-scheduler resume'."
+										).withStyle(ChatFormatting.GOLD)
+								);
+
+								commandContext.getSource().sendSuccess(() -> Component.literal("Backup scheduler is LOCKED"), true);
+
+								return 1;
+							})
+					)
 					.then(Commands.literal("remain")
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();

@@ -21,6 +21,9 @@ public class Scheduler {
     public static boolean isBackupRunning() {
         return backupRunning;
     }
+    public static void setBackupRunning(boolean backupRunning) {
+        Scheduler.backupRunning = backupRunning;
+    }
 
     private static void logError(@Nullable CommandSourceStack origin, String string) {
         if (origin != null) origin.sendFailure(Component.literal(string));
