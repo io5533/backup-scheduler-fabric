@@ -122,6 +122,15 @@ public class BackupScheduler implements ModInitializer {
 								return 1;
 							})
 					)
+					.then(Commands.literal("reload")
+							.executes(commandContext -> {
+								Scheduler.paused = true;
+								Config.reload();
+								Scheduler.paused = false;
+								commandContext.getSource().sendSuccess(() -> Component.literal("Config file reloaded"), true);
+								return 1;
+							})
+					)
 					.then(Commands.literal("pause")
 							.executes(commandContext -> {
 								Scheduler.paused = true;
