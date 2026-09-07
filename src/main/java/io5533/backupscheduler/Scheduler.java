@@ -1,6 +1,5 @@
 package io5533.backupscheduler;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -11,18 +10,12 @@ import java.io.IOException;
 
 public class Scheduler {
     public static boolean paused = false;
-    private static boolean backupRunning = false;
+    public static boolean scriptRunning = false;
 
     private static int backupTick = 0;
 
     public static int getBackupTick() {
         return backupTick;
-    }
-    public static boolean isBackupRunning() {
-        return backupRunning;
-    }
-    public static void setBackupRunning(boolean backupRunning) {
-        Scheduler.backupRunning = backupRunning;
     }
 
     private static void logError(@Nullable CommandSourceStack origin, String string) {
@@ -43,7 +36,7 @@ public class Scheduler {
     }
     public static void backup(MinecraftServer server, @Nullable CommandSourceStack origin) {
         Config config = Config.getInstance();
-        if (backupRunning) {
+        if (scriptRunning) {
             logWarn(origin, "Backup script is still running. Skip the backup.");
             return;
         }
@@ -51,7 +44,7 @@ public class Scheduler {
             logWarn(origin, "config.backup_command is empty! Skip the backup. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
             return;
         }
-        backupRunning = true;
+        scriptRunning = true;
         final Commands commands = server.getCommands();
         final CommandSourceStack stack = server.createCommandSourceStack();
 
@@ -73,8 +66,9 @@ public class Scheduler {
                             throw new RuntimeException(e);
                         } finally {
                             commands.performPrefixedCommand(stack.withCallback((success3, _3) -> {
-                                backupRunning = false;
+                                scriptRunning = false;
                                 if (!success3) logWarn(origin, "Failed to execute save-on!");
+                                logInfo(origin, "Backup completed");
                             }), "save-on");
                         }
                     }).start();
@@ -82,45 +76,45 @@ public class Scheduler {
                 }
                 else {
                     logError(origin, "Backup failed!");
-                    backupRunning = false;
+                    scriptRunning = false;
                 }
 
             }), "save-all flush");
             else {
                 logError(origin, "Backup failed!");
-                backupRunning = false;
+                scriptRunning = false;
             }
 
         }), "save-off");
     }
 
-    public static void clean() {
-        clean(null);
+    public static void cleanup() {
+        cleanup(null);
     }
-    public static void clean(@Nullable CommandSourceStack origin) {
+    public static void cleanup(@Nullable CommandSourceStack origin) {
         Config config = Config.getInstance();
-        if (backupRunning) {
-            logWarn(origin, "Backup script is still running. Skip the clean.");
+        if (scriptRunning) {
+            logWarn(origin, "Backup script is still running. Skip the cleanup.");
             return;
         }
-        if (config.clean_command.isEmpty()) {
-            logWarn(origin, "config.clean_command is empty! Skip the clean. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
+        if (config.cleanup_command.isEmpty()) {
+            logWarn(origin, "config.cleanup_command is empty! Skip the cleanup. Tip: check the " + Config.CONFIG_FILE.getPath() + " file.");
             return;
         }
-        backupRunning = true;
+        scriptRunning = true;
         new Thread(() -> {
-            ProcessBuilder pb = new ProcessBuilder(config.clean_command);
+            ProcessBuilder pb = new ProcessBuilder(config.cleanup_command);
             try {
                 Process process = pb.start();
                 int exitCode = process.waitFor();
                 if (exitCode != 0) {
-                    logError(origin, "clean_command exit code: " + exitCode);
+                    logError(origin, "cleanup_command exit code: " + exitCode);
                 }
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             } finally {
-                backupRunning = false;
-                logInfo(origin, "Cleaned");
+                scriptRunning = false;
+                logInfo(origin, "Cleanup completed");
             }
         }).start();
     }

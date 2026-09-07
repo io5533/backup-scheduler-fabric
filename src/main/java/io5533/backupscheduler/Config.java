@@ -25,7 +25,7 @@ public class Config {
 	public int tick = 36000;
 	public boolean admin_commands = true;
 	public String backup_command = "";
-	public String clean_command = "";
+	public String cleanup_command = "";
 	public Config() {}
 
 	private static Config load() throws IOException {
