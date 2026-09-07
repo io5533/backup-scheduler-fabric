@@ -22,10 +22,18 @@ public class Config {
 		return instance;
 	}
 
-	public int tick = 36000;
+	public static void reload() {
+		try {
+			instance = Config.load();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public int backup_tick = 36000;
 	public boolean admin_commands = true;
 	public String backup_command = "";
-	public String clean_command = "";
+	public String cleanup_command = "";
 	public Config() {}
 
 	private static Config load() throws IOException {

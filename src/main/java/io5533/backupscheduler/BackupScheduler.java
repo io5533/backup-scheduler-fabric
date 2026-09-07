@@ -28,21 +28,21 @@ public class BackupScheduler implements ModInitializer {
 					.then(Commands.literal("unlock")
 							.executes(commandContext -> {
 								CommandSourceStack sourceStack = commandContext.getSource();
-								if (!Scheduler.isBackupRunning()) {
+								if (!Scheduler.scriptRunning) {
 									sourceStack.sendFailure(Component.literal("Script is not running"));
 									return 0;
 								}
 								Scheduler.paused = true;
-								Scheduler.setBackupRunning(false);
+								Scheduler.scriptRunning = false;
 
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"WARNING: Unlocking while the backup script is still running may cause backup file corruption!"
+												"WARNING: Unlocking while a script is still running may cause data corruption!"
 										).withStyle(ChatFormatting.GOLD)
 								);
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"Only use this command if you are sure that the backup script has finished."
+												"Only use this command if you are sure that the script has finished."
 										).withStyle(ChatFormatting.GOLD)
 								);
 								sourceStack.sendSystemMessage(
@@ -52,7 +52,7 @@ public class BackupScheduler implements ModInitializer {
 								);
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"Verify that the backup has finished before using '/backup-scheduler resume'."
+												"Verify that the script has finished before using '/backup-scheduler resume'."
 										).withStyle(ChatFormatting.GOLD)
 								);
 
@@ -65,31 +65,31 @@ public class BackupScheduler implements ModInitializer {
 					.then(Commands.literal("lock")
 							.executes(commandContext -> {
 								CommandSourceStack sourceStack = commandContext.getSource();
-								if (Scheduler.isBackupRunning()) {
+								if (Scheduler.scriptRunning) {
 									sourceStack.sendFailure(Component.literal("Script is still running"));
 									return 0;
 								}
 								Scheduler.paused = true;
-								Scheduler.setBackupRunning(true);
+								Scheduler.scriptRunning = true;
 
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"WARNING: This will force the Backup Scheduler into a locked state."
+												"WARNING: This command manually locks the Backup Scheduler."
 										).withStyle(ChatFormatting.GOLD)
 								);
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"If the backup script is currently running, use '/backup-scheduler pause' instead."
+												"If a script is currently running, use '/backup-scheduler pause' instead."
 										).withStyle(ChatFormatting.GOLD)
 								);
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"While locked, scheduled backups will be skipped when the tick threshold is reached."
+												"While locked, scheduled scripts will not be executed when the tick threshold is reached."
 										).withStyle(ChatFormatting.GOLD)
 								);
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"This may cause a scheduled backup to be missed."
+												"This may cause a scheduled backup or cleanup to be missed."
 										).withStyle(ChatFormatting.GOLD)
 								);
 								sourceStack.sendSystemMessage(
@@ -99,7 +99,7 @@ public class BackupScheduler implements ModInitializer {
 								);
 								sourceStack.sendSystemMessage(
 										Component.literal(
-												"Verify the backup state before using '/backup-scheduler resume'."
+												"Verify the script state before using '/backup-scheduler resume'."
 										).withStyle(ChatFormatting.GOLD)
 								);
 
@@ -111,7 +111,7 @@ public class BackupScheduler implements ModInitializer {
 					.then(Commands.literal("remain")
 							.executes(commandContext -> {
 								int tick = Scheduler.getBackupTick();
-								int remain = Config.getInstance().tick - tick;
+								int remain = Config.getInstance().backup_tick - tick;
 
 								int sec = remain/20;
 								int min = sec/60;
@@ -119,6 +119,15 @@ public class BackupScheduler implements ModInitializer {
 								commandContext.getSource().sendSystemMessage(
 										Component.literal("Current scheduler tick is "+tick+". "+remain+" ticks(about "+min+"min "+sec+"sec) remain for next backup.")
 								);
+								return 1;
+							})
+					)
+					.then(Commands.literal("reload")
+							.executes(commandContext -> {
+								Scheduler.paused = true;
+								Config.reload();
+								Scheduler.paused = false;
+								commandContext.getSource().sendSuccess(() -> Component.literal("Config file reloaded"), true);
 								return 1;
 							})
 					)
@@ -143,10 +152,10 @@ public class BackupScheduler implements ModInitializer {
 								return 1;
 							})
 					)
-					.then(Commands.literal("clean")
+					.then(Commands.literal("cleanup")
 							.executes(commandContext -> {
-								Scheduler.clean(commandContext.getSource());
-								commandContext.getSource().sendSuccess(() -> Component.literal("Clean started"), true);
+								Scheduler.cleanup(commandContext.getSource());
+								commandContext.getSource().sendSuccess(() -> Component.literal("Cleanup started"), true);
 								return 1;
 							})
 					)
@@ -154,7 +163,7 @@ public class BackupScheduler implements ModInitializer {
 							.executes(commandContext -> {
 								commandContext.getSource().sendSystemMessage(
 										Component.literal(
-												Scheduler.isBackupRunning()?
+												Scheduler.scriptRunning?
 												"Script is still running" :
 												"Script is not running"
 										)
