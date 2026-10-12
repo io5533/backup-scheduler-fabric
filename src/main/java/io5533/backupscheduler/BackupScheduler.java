@@ -174,8 +174,4 @@ public class BackupScheduler implements ModInitializer {
 			);
 		});
 	}
-
-	public static Identifier id(String path) {
-		return Identifier.fromNamespaceAndPath(MOD_ID, path);
-	}
 }
