@@ -174,8 +174,4 @@ public class BackupScheduler implements ModInitializer {
 			);
 		});
 	}
-
-	public static ResourceLocation id(String path) {
-		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
-	}
 }
