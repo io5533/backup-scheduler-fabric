@@ -3,6 +3,7 @@ package io5533.backupscheduler;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -12,6 +13,19 @@ public class Scheduler {
     public static boolean scriptRunning = false;
 
     private static int backupTick = 0;
+
+    private static boolean setAutoSave(MinecraftServer server, boolean enable) {
+        boolean success = false;
+
+        for(ServerLevel level : server.getAllLevels()) {
+            if (level != null && level.noSave == enable) {
+                level.noSave = !enable;
+                success = true;
+            }
+        }
+
+        return success;
+    }
 
     public static int getBackupTick() {
         return backupTick;
@@ -42,13 +56,13 @@ public class Scheduler {
         }
 
         scriptRunning = true;
-        boolean wasEnabled = server.setAutoSave(false);
+        boolean wasEnabled = setAutoSave(server, false);
         if(!saveAllFlush(server)) {
             if (origin == null)
                 BackupScheduler.LOGGER.error("Backup failed! (save-all flush)");
             else
                 origin.sendFailure(Component.literal("Backup failed! (save-all flush)"));
-            server.setAutoSave(wasEnabled);
+            setAutoSave(server, wasEnabled);
             scriptRunning = false;
             return;
         }
@@ -67,7 +81,7 @@ public class Scheduler {
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             } finally {
-                server.setAutoSave(wasEnabled);
+                setAutoSave(server, wasEnabled);
                 scriptRunning = false;
 
                 if (origin == null)
